@@ -10,5 +10,10 @@
   		<artifactId>commons-lang3</artifactId>
   		<version>3.7</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.springframework.social</groupId>
+  		<artifactId>spring-social-twitter</artifactId>
+  		<version>1.1.2.RELEASE</version>
+  	</dependency>
   </dependencies>
 </project>
