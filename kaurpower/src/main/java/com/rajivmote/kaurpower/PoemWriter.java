@@ -10,7 +10,7 @@ public class PoemWriter {
 	private static final Logger LOG = Logger.getLogger(PoemWriter.class.getName());
 	static final int LINE_MAX_LEN = 50;
 	static final String EMPTY = "Sometimes silence makes the loudest sound.";
-	static final String ATTRIBUTION = "- (not) Rupi Kaur";
+	static final String ATTRIBUTION = "- (not) rupi kaur";
 
 	public String[] writePoem(String text) {
 		LOG.fine("Generating poem from: [" + text + "]");

@@ -117,4 +117,14 @@ public class PoemWriterTest {
 		assertEquals(27, lines.get(1).length());
 	}
 	
+	@Test
+	public void testSplitLinesStripInternalNewline() {
+		final String CHARS = "01234\n56789";
+		List<String> lines = new ArrayList<String>();
+		poemWriter.splitLines(lines, CHARS);
+		assertEquals(1, lines.size());
+		assertFalse(lines.get(0).contains("\n"));
+		assertTrue(lines.get(0).contains(" "));
+	}
+	
 }

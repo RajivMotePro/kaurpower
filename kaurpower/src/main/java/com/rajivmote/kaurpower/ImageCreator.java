@@ -10,12 +10,16 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 public class ImageCreator {
+	public InputStream chooseImageBackground() {
+		// TODO Randomly choose from available background images
+		return null;
+	}
 	
 	public BufferedImage createImage(InputStream rawImage, String[] poemLines) throws IOException {
 		BufferedImage image = ImageIO.read(rawImage);
 		Graphics graphics = image.getGraphics();
 	    graphics.setColor(Color.BLACK);
-	    graphics.setFont(new Font("Arial Black", Font.BOLD, 60));
+	    graphics.setFont(new Font("TimesRoman", Font.ITALIC, 60));
 	    int x = 100;
 	    int y = 250;
 	    for (String line : poemLines) {
