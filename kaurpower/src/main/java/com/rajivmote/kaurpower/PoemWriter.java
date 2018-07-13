@@ -30,6 +30,9 @@ public class PoemWriter {
 	}
 	
 	void splitLines(List<String> lines, String text) {
+		if (text != null) {
+			text = text.replaceAll("\n", " ");
+		}
 		if (StringUtils.isEmpty(StringUtils.trim(text))) {
 			return;
 		} else if (text.length() <= LINE_MAX_LEN) {

@@ -24,6 +24,8 @@ public class TweetGrabberTest {
 	public void testIsTriggeredTweet() {
 		@SuppressWarnings("deprecation")
 		Tweet triggeredTweet = new Tweet(0, "@RajivMote " + TweetGrabber.TRIGGER + " to ya.", null, null, null, null, 0, null, null);
+		assertFalse(tweetGrabber.isTriggeredTweet(triggeredTweet));
+		triggeredTweet.setInReplyToStatusId(500L);
 		assertTrue(tweetGrabber.isTriggeredTweet(triggeredTweet));
 		@SuppressWarnings("deprecation")
 		Tweet untriggeredTweet = new Tweet(0, "@RajivMote Hello sailor!", null, null, null, null, 0, null, null);
