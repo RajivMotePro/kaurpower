@@ -14,21 +14,24 @@ public class TweetGrabber {
 	private TwitterTemplate twitterTemplate;
 	
 	protected boolean isTriggeredTweet(Tweet tweet) {
-		return tweet.getInReplyToStatusId() != null && tweet.getText().toLowerCase().contains(TRIGGER);
+		LOG.fine(String.format("Testing tweet %d: %s", tweet.getId(), tweet.getUnmodifiedText()));
+		return tweet.getInReplyToStatusId() != null 
+				&& tweet.getUnmodifiedText().toLowerCase().contains(TRIGGER);
 	}
 	
 	public List<Tweet> pollForTweets(Map<Tweet, Tweet> targetsByMention) {
 		List<Tweet> mentions = new ArrayList<Tweet>();
 		List<Tweet> replies = twitterTemplate.timelineOperations().getMentions();
-		LOG.info(String.format("Retrieved %d Twitter mentions", replies.size()));
-		for (Tweet tweet : replies) {
-			if (isTriggeredTweet(tweet)) {
-				mentions.add(tweet);
+		LOG.fine(String.format("Retrieved %d Twitter mentions", replies.size()));
+		for (Tweet reply : replies) {
+			if (isTriggeredTweet(reply)) {
+				mentions.add(reply);
 				targetsByMention.put(
-						tweet, 
-						twitterTemplate.timelineOperations().getStatus(tweet.getInReplyToStatusId()));
+						reply, 
+						twitterTemplate.timelineOperations().getStatus(reply.getInReplyToStatusId()));
 			}
 		}
+		LOG.info(String.format("Found %d triggering Tweets", mentions.size()));
 		return mentions;
 	}
 

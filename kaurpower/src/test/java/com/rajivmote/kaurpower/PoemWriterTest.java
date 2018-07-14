@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,6 +82,33 @@ public class PoemWriterTest {
 	}
 	
 	@Test
+	public void testCleanTextEmpties() {
+		String result = poemWriter.cleanText(null);
+		assertNotNull(result);
+		assertTrue(StringUtils.isEmpty(result));
+		
+		result = poemWriter.cleanText("   ");
+		assertNotNull(result);
+		assertTrue(StringUtils.isEmpty(result));
+		
+		result = poemWriter.cleanText("\n\t");
+		assertNotNull(result);
+		assertTrue(StringUtils.isEmpty(result));
+	}
+	
+	@Test
+	public void testCleanTextCondenseWhitespace() {
+		String result = poemWriter.cleanText("abc   def");
+		assertEquals("abc def", result);
+
+		result = poemWriter.cleanText("abc \tdef");
+		assertEquals("abc def", result);
+		
+		result = poemWriter.cleanText("abc\n\ndef");
+		assertEquals("abc def", result);
+	}
+	
+	@Test
 	public void testSplitLinesNoSpace() {
 		final String CHARS_10 = "0123456789";
 		final String CHARS_50 = CHARS_10 + CHARS_10 + CHARS_10 + CHARS_10 + CHARS_10;
@@ -107,21 +135,21 @@ public class PoemWriterTest {
 		List<String> lines = new ArrayList<String>();
 		poemWriter.splitLines(lines, CHARS_55);
 		assertEquals(2, lines.size());
-		assertEquals(50, lines.get(0).length());
-		assertEquals(5, lines.get(1).length());
+		assertEquals(40, lines.get(0).length());
+		assertEquals(14, lines.get(1).length());
 		
 		lines.clear();
 		poemWriter.splitLines(lines, CHARS_77);
 		assertEquals(2, lines.size());
-		assertEquals(50, lines.get(0).length());
-		assertEquals(27, lines.get(1).length());
+		assertEquals(40, lines.get(0).length());
+		assertEquals(36, lines.get(1).length());
 	}
 	
 	@Test
 	public void testSplitLinesStripInternalNewline() {
 		final String CHARS = "01234\n56789";
 		List<String> lines = new ArrayList<String>();
-		poemWriter.splitLines(lines, CHARS);
+		poemWriter.splitLines(lines, poemWriter.cleanText(CHARS));
 		assertEquals(1, lines.size());
 		assertFalse(lines.get(0).contains("\n"));
 		assertTrue(lines.get(0).contains(" "));

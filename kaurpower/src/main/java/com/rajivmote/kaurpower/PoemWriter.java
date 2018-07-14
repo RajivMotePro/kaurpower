@@ -10,14 +10,14 @@ public class PoemWriter {
 	private static final Logger LOG = Logger.getLogger(PoemWriter.class.getName());
 	static final int LINE_MAX_LEN = 50;
 	static final String EMPTY = "Sometimes silence makes the loudest sound.";
-	static final String ATTRIBUTION = "- (not) rupi kaur";
+	static final String ATTRIBUTION = "    - not rupi kaur";
 
 	public String[] writePoem(String text) {
-		LOG.fine("Generating poem from: [" + text + "]");
-		if (!StringUtils.isEmpty(StringUtils.trim(text)))
+		text = cleanText(text);
+		if (!StringUtils.isEmpty(text))
 		{
+			LOG.info("Generating poem from: [" + text + "]");
 			List<String> lines = new ArrayList<String>();
-			text = StringUtils.trim(text);
 			if (text.length() > LINE_MAX_LEN) {
 				splitLines(lines, text);
 			} else {
@@ -29,25 +29,41 @@ public class PoemWriter {
 		return new String[] { EMPTY, ATTRIBUTION };
 	}
 	
-	void splitLines(List<String> lines, String text) {
+	String cleanText(String text) {
+		StringBuilder cleanText = new StringBuilder();
+		boolean justWroteWhitespace = false;
 		if (text != null) {
-			text = text.replaceAll("\n", " ");
+			for(char ch : text.toCharArray()) {
+				if(Character.isWhitespace(ch)) {
+					if (!justWroteWhitespace) {
+						cleanText.append(' ');
+						justWroteWhitespace = true;
+					}
+				} else {
+					justWroteWhitespace = false;
+					cleanText.append(ch);
+				}
+			}
 		}
-		if (StringUtils.isEmpty(StringUtils.trim(text))) {
+		return StringUtils.trim(cleanText.toString());
+	}
+	
+	void splitLines(List<String> lines, String text) {
+		if (StringUtils.isEmpty(text)) {
 			return;
 		} else if (text.length() <= LINE_MAX_LEN) {
 			lines.add(StringUtils.trim(text));
 		} else {
 			int i = LINE_MAX_LEN;
-			while (i >= 0 && !StringUtils.isWhitespace((text.substring(i, i)))) {
+			while (i >= 0 && !Character.isWhitespace(text.charAt(i))) {
 				i--;
 			}
 			if (i >= 0) {
 				lines.add(StringUtils.trim(text.substring(0, i)));
-				splitLines(lines, text.substring(i));
+				splitLines(lines, StringUtils.trim(text.substring(i)));
 			} else {
 				lines.add(StringUtils.trim(text.substring(0, LINE_MAX_LEN)));
-				splitLines(lines, text.substring(LINE_MAX_LEN));
+				splitLines(lines, StringUtils.trim(text.substring(LINE_MAX_LEN)));
 			}
 		}
 	}

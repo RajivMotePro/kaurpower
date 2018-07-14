@@ -33,7 +33,6 @@ public class TweetGrabberRunner extends TweetGrabber {
 		} else {
 			System.err.println("Usage: consumerKey consumerSecret accessKey accessKeySecret");
 		}
-
 	}
 
 }
