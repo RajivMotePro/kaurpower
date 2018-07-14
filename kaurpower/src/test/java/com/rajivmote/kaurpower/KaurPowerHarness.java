@@ -18,14 +18,17 @@ public class KaurPowerHarness {
 	public static void main(String[] args) {
 		if (args != null && args.length == 4) {
 			try {
+				// TODO Configure by Spring
 				TwitterTemplate twitter = new TwitterTemplate(args[0], args[1], args[2], args[3]);
 				TweetGrabber runner = new TweetGrabber();
 				runner.setTwitterTemplate(twitter);
 				ImageCreator imageCreator = new ImageCreator(1);
 				TweetPoster tweetPoster = new TweetPoster(twitter);
 				PoemWriter poemWriter = new PoemWriter();
-				Map<Tweet, Tweet> targetsByMention = new HashMap<Tweet, Tweet>();
+				// 0. Retrieve "last Tweet responded to" from store
+				// TODO
 				// 1. Get app-triggering Tweets and their referents
+				Map<Tweet, Tweet> targetsByMention = new HashMap<Tweet, Tweet>();
 				List<Tweet> mentions = runner.pollForTweets(targetsByMention);
 				int imageIndex = 1;
 				for (Tweet mention : mentions) {
@@ -55,9 +58,10 @@ public class KaurPowerHarness {
 					ImageIO.write(image,  "jpg", imageStream);
 					// 4. Post response Tweet
 					ByteArrayResource imageResource = new ByteArrayResource(imageStream.toByteArray(), imageFile.getName());
-					tweetPoster.postImageReply(mention.getId(), "#kaurpower", imageResource);
+					tweetPoster.postImageReply(mention.getId(), "Here's your #kaurpower meme.", imageResource);
 					System.out.println(String.format("Posted response to %s's Tweet, ID = %d", 
 							mention.getFromUser(), mention.getId()));
+					// 5. Update "last Tweet responded to" store
 				}
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
