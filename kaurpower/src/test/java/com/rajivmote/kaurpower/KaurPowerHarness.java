@@ -1,8 +1,12 @@
 package com.rajivmote.kaurpower;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
@@ -14,7 +18,7 @@ public class KaurPowerHarness {
 			try {
 				TweetGrabber runner = new TweetGrabber();
 				runner.setTwitterTemplate(new TwitterTemplate(args[0], args[1], args[2], args[3]));
-				ImageCreator imageCreator = new ImageCreator();
+				ImageCreator imageCreator = new ImageCreator(2);
 				PoemWriter poemWriter = new PoemWriter();
 				Map<Tweet, Tweet> targetsByMention = new HashMap<Tweet, Tweet>();
 				List<Tweet> mentions = runner.pollForTweets(targetsByMention);
@@ -28,6 +32,10 @@ public class KaurPowerHarness {
 						System.out.println(line);
 					}
 					System.out.println();
+					BufferedImage image = imageCreator.createImage(poemLines);
+					File imageFile = new File("C:/Users/Rajiv/Pictures/image.jpg");
+					ImageIO.write(image, "jpg", imageFile);
+					System.out.println("Wrote: " + imageFile.getAbsolutePath());
 				}
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
