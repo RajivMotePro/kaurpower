@@ -1,17 +1,12 @@
 package com.rajivmote.kaurpower;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.Resource;
 import org.springframework.social.twitter.api.Tweet;
-import org.springframework.social.twitter.api.TweetData;
 
 public class KaurPowerApplication {
 	private static final Logger LOG = Logger.getLogger(KaurPowerApplication.class.getName());
@@ -22,7 +17,7 @@ public class KaurPowerApplication {
 	public static void main(String[] args) {
 		// 1. Get @ replies for "kaurpower"
 		Map<Tweet, Tweet> targetsByMention = new HashMap<Tweet, Tweet>();
-		List<Tweet> tweets = tweetGrabber.pollForTweets(targetsByMention);
+		List<Tweet> tweets = tweetGrabber.pollForTweets(targetsByMention, 0);
 		LOG.info(String.format("Retrieved %d triggered Tweets", tweets.size()));
 		
 		// 2. Create poem per Tweet

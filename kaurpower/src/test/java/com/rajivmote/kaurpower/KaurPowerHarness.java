@@ -10,6 +10,8 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.social.twitter.api.Tweet;
 import org.springframework.social.twitter.api.impl.TwitterTemplate;
 
@@ -19,6 +21,8 @@ public class KaurPowerHarness {
 		if (args != null && args.length == 4) {
 			try {
 				// TODO Configure by Spring
+				Resource tweetStoreResource = new ClassPathResource("LastTweetStore.txt");
+				LastProcessedTweetStore tweetStore = new LastProcessedTweetFileSystemStore(tweetStoreResource.getFile());
 				TwitterTemplate twitter = new TwitterTemplate(args[0], args[1], args[2], args[3]);
 				TweetGrabber runner = new TweetGrabber();
 				runner.setTwitterTemplate(twitter);
@@ -26,10 +30,14 @@ public class KaurPowerHarness {
 				TweetPoster tweetPoster = new TweetPoster(twitter);
 				PoemWriter poemWriter = new PoemWriter();
 				// 0. Retrieve "last Tweet responded to" from store
-				// TODO
+				long lastProcessedTweetId = 0L;
+				if (tweetStoreResource.getFile().exists()) {
+					lastProcessedTweetId = tweetStore.loadLastProcessedTweet();
+					System.out.println(String.format("Loaded last processed Tweet ID = %d", lastProcessedTweetId));
+				}
 				// 1. Get app-triggering Tweets and their referents
 				Map<Tweet, Tweet> targetsByMention = new HashMap<Tweet, Tweet>();
-				List<Tweet> mentions = runner.pollForTweets(targetsByMention);
+				List<Tweet> mentions = runner.pollForTweets(targetsByMention, lastProcessedTweetId);
 				int imageIndex = 1;
 				for (Tweet mention : mentions) {
 					Tweet target = targetsByMention.get(mention);
@@ -62,6 +70,11 @@ public class KaurPowerHarness {
 					System.out.println(String.format("Posted response to %s's Tweet, ID = %d", 
 							mention.getFromUser(), mention.getId()));
 					// 5. Update "last Tweet responded to" store
+					if (lastProcessedTweetId < mention.getId()) {
+						lastProcessedTweetId = mention.getId();
+						System.out.println(String.format("Saving last processed Tweet ID = %d", lastProcessedTweetId));
+						tweetStore.saveLastProcessedTweet(lastProcessedTweetId);
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace(System.err);

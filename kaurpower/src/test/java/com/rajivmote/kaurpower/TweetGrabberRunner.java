@@ -23,7 +23,7 @@ public class TweetGrabberRunner extends TweetGrabber {
 		if (args != null && args.length == 4) {
 			TweetGrabberRunner runner = new TweetGrabberRunner(args[0], args[1], args[2], args[3]);
 			Map<Tweet, Tweet> targetsByMention = new HashMap<Tweet, Tweet>();
-			List<Tweet> mentions = runner.pollForTweets(targetsByMention);
+			List<Tweet> mentions = runner.pollForTweets(targetsByMention, 0L);
 			for (Tweet mention : mentions) {
 				Tweet target = targetsByMention.get(mention);
 				System.out.println(String.format("@%s says: %s\n\tin reply to @%s: %s\n", 
