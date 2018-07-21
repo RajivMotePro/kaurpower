@@ -1,42 +1,86 @@
 package com.rajivmote.kaurpower;
 
-import java.io.InputStream;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
+import javax.imageio.ImageIO;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.social.twitter.api.Tweet;
 
-public class KaurPowerApplication {
-	private static final Logger LOG = Logger.getLogger(KaurPowerApplication.class.getName());
-	private static TweetGrabber tweetGrabber;
-	private static PoemWriter poemWriter = new PoemWriter();
-	private static ImageCreator imageCreator = new ImageCreator();
+@SpringBootApplication
+public class KaurPowerApplication implements CommandLineRunner {
+	
+	@Autowired
+	private LastProcessedTweetStore tweetStore;
+	@Autowired
+	private TweetGrabber tweetGrabber;
+	@Autowired
+	private PoemWriter poemWriter;
+	@Autowired
+	private ImageCreator imageCreator;
+	@Autowired
+	private TweetPoster tweetPoster;
 	
 	public static void main(String[] args) {
-		// 1. Get @ replies for "kaurpower"
+		SpringApplication.run(KaurPowerApplication.class, args);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		// 0. Retrieve "last Tweet responded to" from store
+		long lastProcessedTweetId = 0L;
+		lastProcessedTweetId = tweetStore.loadLastProcessedTweet();
+		System.out.println(String.format("Loaded last processed Tweet ID = %d", lastProcessedTweetId));
+		// 1. Get app-triggering Tweets and their referents
 		Map<Tweet, Tweet> targetsByMention = new HashMap<Tweet, Tweet>();
-		List<Tweet> tweets = tweetGrabber.pollForTweets(targetsByMention, 0);
-		LOG.info(String.format("Retrieved %d triggered Tweets", tweets.size()));
-		
-		// 2. Create poem per Tweet
-		for (Tweet tweet : tweets) {
-			String[] poemLines = poemWriter.writePoem(tweet.getText());
-			if (poemLines != null && poemLines.length > 0) {
-				
-				// 4. Select a random image template
-				// TODO
-				
-				// 4. Generate image per Tweet
-				InputStream rawImageStream = null;
-				// TODO
-				// TODO BufferedImage image = imageCreator.createImage(rawImageStream, poemLines);
-				
-				// 5. Post image as a reply Tweet
-				// TODO TweetData replyData = generateReplyData(tweet, poemLines);
+		List<Tweet> mentions = tweetGrabber.pollForTweets(targetsByMention, lastProcessedTweetId);
+		int imageIndex = 1;
+		for (Tweet mention : mentions) {
+			Tweet target = targetsByMention.get(mention);
+			System.out.println(String.format("@%s says: %s\n\tin reply to @%s: %s\n", 
+					mention.getFromUser(), mention.getUnmodifiedText(), 
+					target.getFromUser(), target.getUnmodifiedText()));
+			System.out.println("Extra data:");
+			Map<String, Object> extraData = target.getEntities().getExtraData();
+			for (String key : extraData.keySet()) {
+				Object value = extraData.get(key);
+				System.out.println(String.format("%s = %s", key, value));
 			}
-		}		
+			// 2. Generate a "poem" from the Tweet text
+			String[] poemLines = poemWriter.writePoem(target.getUnmodifiedText());
+			for (String line : poemLines) {
+				System.out.println(line);
+			}
+			System.out.println();
+			// 3. Create image with poem overlay
+			BufferedImage image = imageCreator.createImage(poemLines);
+			File imageFile = 
+					new File(String.format("C:/Users/Rajiv/Pictures/kaurpower_image_%d.jpg", imageIndex++));
+			ImageIO.write(image, "jpg", imageFile);
+			System.out.println("Wrote: " + imageFile.getAbsolutePath());
+			ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
+			ImageIO.write(image,  "jpg", imageStream);
+			// 4. Post response Tweet
+			ByteArrayResource imageResource = new ByteArrayResource(imageStream.toByteArray(), imageFile.getName());
+			tweetPoster.postImageReply(mention.getId(), "Here's your #kaurpower meme.", imageResource);
+			System.out.println(String.format("Posted response to %s's Tweet, ID = %d", 
+					mention.getFromUser(), mention.getId()));
+			// 5. Update "last Tweet responded to" store
+			if (lastProcessedTweetId < mention.getId()) {
+				lastProcessedTweetId = mention.getId();
+				System.out.println(String.format("Saving last processed Tweet ID = %d", lastProcessedTweetId));
+				tweetStore.saveLastProcessedTweet(lastProcessedTweetId);
+			}
+		}
 	}
 	
 }
