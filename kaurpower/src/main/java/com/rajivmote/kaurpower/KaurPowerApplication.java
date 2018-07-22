@@ -70,10 +70,16 @@ public class KaurPowerApplication implements CommandLineRunner {
 			ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
 			ImageIO.write(image,  "jpg", imageStream);
 			// 4. Post response Tweet
-			ByteArrayResource imageResource = new ByteArrayResource(imageStream.toByteArray(), imageFile.getName());
-			tweetPoster.postImageReply(mention.getId(), "Here's your #kaurpower meme.", imageResource);
-			System.out.println(String.format("Posted response to %s's Tweet, ID = %d", 
-					mention.getFromUser(), mention.getId()));
+			boolean suppressTweets = Boolean.parseBoolean(System.getProperty("suppressTweets", "false"));
+			if (suppressTweets) {
+				System.out.println(String.format("SUPPRESSED response to %s's Tweet, ID = %d", 
+						mention.getFromUser(), mention.getId()));
+			} else {
+				ByteArrayResource imageResource = new ByteArrayResource(imageStream.toByteArray(), imageFile.getName());
+				tweetPoster.postImageReply(mention.getId(), "Here's your #kaurpower meme.", imageResource);
+				System.out.println(String.format("Posted response to %s's Tweet, ID = %d", 
+						mention.getFromUser(), mention.getId()));
+			}
 			// 5. Update "last Tweet responded to" store
 			if (lastProcessedTweetId < mention.getId()) {
 				lastProcessedTweetId = mention.getId();
