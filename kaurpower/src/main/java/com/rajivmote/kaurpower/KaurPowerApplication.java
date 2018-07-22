@@ -36,6 +36,11 @@ public class KaurPowerApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+		if (args.length > 0 && "clearlasttweeted".equalsIgnoreCase(args[0])) {
+			clearLastTweetedId();
+			return;
+		}
+		boolean suppressTweets = Boolean.parseBoolean(System.getProperty("suppressTweets", "false"));
 		// 0. Retrieve "last Tweet responded to" from store
 		long lastProcessedTweetId = 0L;
 		lastProcessedTweetId = tweetStore.loadLastProcessedTweet();
@@ -70,7 +75,6 @@ public class KaurPowerApplication implements CommandLineRunner {
 			ByteArrayOutputStream imageStream = new ByteArrayOutputStream();
 			ImageIO.write(image,  "jpg", imageStream);
 			// 4. Post response Tweet
-			boolean suppressTweets = Boolean.parseBoolean(System.getProperty("suppressTweets", "false"));
 			if (suppressTweets) {
 				System.out.println(String.format("SUPPRESSED response to %s's Tweet, ID = %d", 
 						mention.getFromUser(), mention.getId()));
@@ -87,6 +91,11 @@ public class KaurPowerApplication implements CommandLineRunner {
 				tweetStore.saveLastProcessedTweet(lastProcessedTweetId);
 			}
 		}
+	}
+	
+	private void clearLastTweetedId() {
+		System.out.println("Clearing last processed Tweet ID");
+		tweetStore.saveLastProcessedTweet(0L);
 	}
 	
 }
